@@ -1,0 +1,14 @@
+{
+  "name": "query-mapper",
+  "version": "0.0.3",
+  "description": "Map query to resource and get data what you asked for.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "query-mapper"
+  ],
+  "author": "chandrahul028",
+  "license": "ISC"
+}
