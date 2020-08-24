@@ -1,14 +1,15 @@
 let winston = require('winston')
 
+let rootDir = __dirname.split('/').slice(0, -1).join('/');
 let options = {
     file: {
-        level: 'info',    // error/warn/info/verbose/debug/silly
-        filename: '/home/blueball/workspace/nodeX/logs/all.json',
+        level: 'info', // error/warn/info/verbose/debug/silly
+        filename: rootDir + '/logs/all.json',
         handleExceptions: true,
         json: true,
         maxsize: 5242880, // 5MB
         maxFiles: 5,
-        colorize: false,
+        colorize: true,
     },
     console: {
         level: 'debug',
@@ -29,4 +30,10 @@ let logger = new winston.createLogger({
 //     message: 'Hello distributed log files!'
 // })
 
-module.exports = logger;
+
+log = (data) => {
+    logger.log({...data, date: new Date() });
+}
+
+
+module.exports = { log };

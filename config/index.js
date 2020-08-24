@@ -1,6 +1,13 @@
 let config = {}
 
 config = {
+    databases: {
+        mongo: {
+            url: "mongodb://localhost",
+            port: "27017",
+            database: "mapper"
+        }
+    },
     mailOptions: {
         host: "",
         port: 587,
@@ -10,7 +17,7 @@ config = {
             pass: ''
         }
     },
-    timezone : "Asia/Colombo"
+    timezone: "Asia/Colombo"
 }
 
 module.exports = config
