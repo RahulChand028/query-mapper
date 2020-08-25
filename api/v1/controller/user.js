@@ -1,18 +1,35 @@
-let async = require('async')
+let { Users, Blogs } = require("../../modal");
+let { Query, Schema } = require("../../../src");
 
-let userController = {};
+let addUser = {
+    before: (request, args, parent) => {
+        let userScehema = {
+            firstName: Schema.isAlpha(),
+            lastName: Schema.isAlpha().isOptional(),
+            email: Schema.isEmail()
+        };
+        let validate = Query.validate(userScehema, request.query);
 
-userController.test = (req, res) => {
-    async.waterfall([
-        (nextCall) => {
-            nextCall(null)
+        return validate.errors ? { type: false, errors: validate.errors } : { type: true };
+    },
+    resolver: async(args, parent) => {
+
+        try {
+            let user = new Users(args);
+            return await user.save();
+        } catch (error) {
+            throw { status: 400, message: "server error while adding user" }
         }
-    ], (error, result) => {
-        error ? res.json({
-            error: 'error occured'
-        }) : res.json({
-            result: 'test result'
-        })
-    })
+    }
 }
-module.exports = { userController }
+let getUser = {
+    resolver: async(args = {}, parent) => {
+
+        try {
+            return await Users.find(args);
+        } catch (error) {
+            throw { status: 400, message: "server error while fetching user" }
+        }
+    }
+}
+module.exports = { addUser, getUser }

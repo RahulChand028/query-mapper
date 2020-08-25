@@ -4,10 +4,13 @@ let Schema = mongoose.Schema;
 let userSchema = new Schema({
     firstName: String,
     lastName: String,
-    email: String,
+    email: {
+        type: String,
+        required: true
+    },
     gender: {
         type: String,
-        enum: ['Male', 'female']
+        enum: ['male', 'female']
     },
     age: {
         type: Number,
