@@ -26,7 +26,9 @@ let getUser = {
     resolver: async(args = {}, parent) => {
 
         try {
-            return await Users.find(args);
+            return parent && parent.key == "getBlog" ?
+                await Users.find({ _id: parent.data.author }) :
+                await Users.find(args);
         } catch (error) {
             throw { status: 400, message: "server error while fetching user" }
         }

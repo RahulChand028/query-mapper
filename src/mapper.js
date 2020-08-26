@@ -51,34 +51,35 @@ async function parseRequest(map, request, key, parent) {
 
         response.forEach(element => {
             let holder = {
-                attributes: {}
+                //attributes: {}
             };
             request.attributes.forEach((attribute) => {
-                holder.attributes[attribute] = typeof element[attribute] != "undefined" ? element[attribute] : ''
+                holder[attribute] = typeof element[attribute] != "undefined" ? element[attribute] : '';
             });
             request.relationships ? mapRelationship.push(mapper(map, request.relationships, { key, data: element })) : '';
             result.push(holder);
         })
 
     } else if (typeof response == 'object' && response != null) {
-
         [response].forEach(element => {
-            let holder = {};
+            let holder = {
+                //attributes: {}
+            };
             request.attributes.forEach((attribute) => {
-                holder[attribute] = typeof element[attribute] != "undefined" ? element[attribute] : ''
+                holder[attribute] = typeof element[attribute] != "undefined" ? element[attribute] : '';
             });
             request.relationships ? mapRelationship.push(mapper(map, request.relationships, { key, data: element })) : '';
             result.push(holder);
-        })
+        });
 
     } else {
         result = response;
     }
 
     if ((typeof request.relationships == "object") && (request.relationships instanceof Array || request.relationships != null)) {
-        mapRelationship = await Promise.all(mapRelationship)
+        mapRelationship = await Promise.all(mapRelationship);
         result = result.map((element, index) => {
-            element.relationships = mapRelationship[index]
+            element.relationships = mapRelationship[index];
             return element;
         })
     }
