@@ -6,7 +6,10 @@ let addUser = {
         let userScehema = {
             firstName: Schema.isAlpha(),
             lastName: Schema.isAlpha().isOptional(),
-            email: Schema.isEmail()
+            email: Schema.isEmail(),
+            id: Schema.isUuid(),
+            url: Schema.isUrl(),
+            _id: Schema.isObjectId()
         };
         let validate = Query.validate(userScehema, request.query);
 
