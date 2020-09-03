@@ -9,8 +9,11 @@ let router = express.Router();
 
 
 router.all("/", (request, response) => {
+    console.time();
+
     Query.mapper(map, request.body)
         .then(result => {
+            console.timeEnd();
             response.status(200).json(result);
         })
         .catch(error => {
