@@ -1,6 +1,6 @@
 # query-mapper
 
-`query-mapper` is an alternate solution to `graphql` that maintain `REST`. define your request in a json format.
+`query-mapper` is an alternate solution to `graphql` . define your request in a json format.
 
 It use joi like validator to validate request.
 
