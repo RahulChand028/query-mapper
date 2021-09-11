@@ -1,6 +1,6 @@
 {
     "name": "query-mapper",
-    "version": "0.3.5",
+    "version": "0.3.7",
     "description": "Map query to resource and get data what you asked for.",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,9 +9,7 @@
     "keywords": [
         "query-mapper"
     ],
-    "dependencies": {
-
-    },
+    "dependencies": {},
     "author": "chandrahul028",
     "license": "ISC"
 }
