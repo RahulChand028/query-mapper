@@ -2,15 +2,14 @@ let mapper = require("./mapper");
 let Query = {};
 let validator = {};
 
-validator.pre = function(schema, payload, key) {
-    if (schema.before) {
-        payload = schema.before(payload);
-    }
+validator.pre = function (schema, payload, key) {
+
+    payload = schema.before ? schema.before(payload) : payload;
 
     return schema.optional && !payload ? { completed: 1, value: undefined } : { completed: 0, value: { schema, payload, key } };
 };
 
-validator.post = function(schema, payload, key) {
+validator.post = function (schema, payload, key) {
 
     if (schema.type.value == "number") {
         if (schema.min && payload < schema.min.value) {
@@ -49,13 +48,13 @@ validator.post = function(schema, payload, key) {
         }
     }
     if (schema.name) {
-        console.log(schema.name)
         key = schema.name;
     }
+    payload = schema.after ? schema.after(payload) : payload;
     return { key, value: payload };
 };
 
-validator.typeSelector = function(schema, payload, key) {
+validator.typeSelector = function (schema, payload, key) {
     let preResult = validator.pre(schema, payload, key);
     if (preResult.completed) {
         return preResult.value;
@@ -64,7 +63,7 @@ validator.typeSelector = function(schema, payload, key) {
     schema = preResult.value.schema;
     payload = preResult.value.payload;
     key = preResult.value.key;
-    result = {};
+    let result = {};
     if (!schema.type) {
         return { key, value: "Invaid Property define" };
     }
@@ -102,6 +101,15 @@ validator.typeSelector = function(schema, payload, key) {
         case "objectId":
             result = validator.objectId(schema, payload, key);
             break;
+        case "in":
+            result = validator.In(schema, payload, key);
+            break;
+        case "boolean":
+            result = validator.Boolean(schema, payload, key);
+            break;
+        case "custom":
+            result = validator.Custom(schema, payload, key);
+            break;
         default:
             return { key, error: "Invalid property type" };
     }
@@ -109,7 +117,7 @@ validator.typeSelector = function(schema, payload, key) {
         validator.post(schema, result.value, key);
 };
 
-validator.pattern = function(schema, payload, key) {
+validator.pattern = function (schema, payload, key) {
     const regex = RegExp(schema.type.desc);
     let regexExec = regex.exec(payload);
     return typeof payload == "string" &&
@@ -123,7 +131,47 @@ validator.pattern = function(schema, payload, key) {
         };
 };
 
-validator.number = function(schema, payload, key) {
+validator.In = function (schema, payload, key) {
+    return schema.type.list.some(item => item == payload) ? { completed: 0, value: payload } : {
+        completed: 1,
+        value: {
+            key,
+            error: schema.type.message ? schema.type.message : "Invalid Type"
+        }
+    };
+};
+
+validator.Custom = function (schema, payload, key) {
+    if (schema.type.desc) {
+        return schema.type.desc(payload) ? { completed: 0, value: payload } : {
+            completed: 1,
+            value: {
+                key,
+                error: schema.type.message ? schema.type.message : "Invalid Type"
+            }
+        };
+    } else {
+        return {
+            completed: 1,
+            value: {
+                key,
+                error: "Please pass custom function"
+            }
+        }
+    }
+};
+
+validator.Boolean = function (schema, payload, key) {
+    return typeof payload == "boolean" || payload == "true" || payload == "false" ? { completed: 0, value: (typeof payload == "boolean" && payload) || (payload == "true") ? true : false } : {
+        completed: 1,
+        value: {
+            key,
+            error: schema.type.message ? schema.type.message : "Invalid Type"
+        }
+    };
+};
+
+validator.number = function (schema, payload, key) {
     return isNaN(payload) ? {
         completed: 1,
         value: {
@@ -133,15 +181,15 @@ validator.number = function(schema, payload, key) {
     } : { completed: 0, value: +payload };
 };
 
-validator.object = function(schema, payload, key) {
+validator.object = function (schema, payload, key) {
     if (
         typeof payload == "object" &&
         payload != null &&
         !(payload instanceof Array)
     ) {
         if (Object.keys(schema.type.desc).length) {
-            let eval = Query.validate(schema.type.desc, payload);
-            return eval.errors ? { completed: 1, value: eval } : { completed: 0, value: eval };
+            let valid = Query.validate(schema.type.desc, payload);
+            return valid.errors ? { completed: 1, value: valid } : { completed: 0, value: valid };
         } else {
             return { completed: 0, value: payload };
         }
@@ -155,7 +203,7 @@ validator.object = function(schema, payload, key) {
         };
     }
 };
-validator.array = function(schema, payload, key) {
+validator.array = function (schema, payload, key) {
     if (typeof payload == "object" && payload instanceof Array) {
         if (Object.keys(schema.type.desc).length) {
             let valid = true;
@@ -198,7 +246,7 @@ validator.array = function(schema, payload, key) {
     }
 };
 
-validator.alpha = function(schema, payload, key) {
+validator.alpha = function (schema, payload, key) {
     const regex = /[a-zA-Z]+/g;
     let regexExec = regex.exec(payload);
     return typeof payload == "string" &&
@@ -211,7 +259,7 @@ validator.alpha = function(schema, payload, key) {
             }
         };
 };
-validator.string = function(schema, payload, key) {
+validator.string = function (schema, payload, key) {
     return typeof payload == "string" ? { completed: 0, value: payload } : {
         completed: 1,
         value: {
@@ -220,7 +268,7 @@ validator.string = function(schema, payload, key) {
         }
     };
 };
-validator.email = function(schema, payload, key) {
+validator.email = function (schema, payload, key) {
     const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/g;
     let regexExec = regex.exec(payload);
     return typeof payload == "string" &&
@@ -234,7 +282,7 @@ validator.email = function(schema, payload, key) {
         };
 };
 
-validator.uuid = function(schema, payload, key) {
+validator.uuid = function (schema, payload, key) {
     const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
     let regexExec = regex.exec(payload);
@@ -248,7 +296,7 @@ validator.uuid = function(schema, payload, key) {
             }
         };
 };
-validator.url = function(schema, payload, key) {
+validator.url = function (schema, payload, key) {
     const regex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/i
 
     let regexExec = regex.exec(payload);
@@ -262,7 +310,7 @@ validator.url = function(schema, payload, key) {
             }
         };
 };
-validator.objectId = function(schema, payload, key) {
+validator.objectId = function (schema, payload, key) {
     const regex = /([0-9a-f]){24}/i
 
     let regexExec = regex.exec(payload);
@@ -276,7 +324,7 @@ validator.objectId = function(schema, payload, key) {
             }
         };
 };
-validator.alphanumeric = function(schema, payload, key) {
+validator.alphanumeric = function (schema, payload, key) {
     const regex = /[a-zA-Z0-9]+/g;
     return typeof payload == "string" &&
         regex.exec(payload)[0].length == payload.length ? { completed: 0, value: payload } : {
@@ -288,22 +336,22 @@ validator.alphanumeric = function(schema, payload, key) {
         };
 };
 
-Query.validate = function(schema, payload) {
+Query.validate = function (schema, payload) {
     if (typeof schema != "object") {
         return {
-            error: "Root schema expected to be an Object"
+            errors: "Root schema expected to be an Object"
         };
     } else if (typeof payload != "object") {
         return {
-            error: "payload expected to be an Object"
+            errors: "payload expected to be an Object"
         };
     } else if (payload != null) {
         let schemaKeys = Object.keys(schema);
         let returnPayload = {};
         let validateResponse = {};
-        for (key of schemaKeys) {
+        for (let key of schemaKeys) {
             validateResponse = validator.typeSelector(schema[key], payload[key], key);
-            if (validateResponse == undefined) {} else if (validateResponse.value.error) {
+            if (validateResponse == undefined) { } else if (validateResponse.value.error) {
                 returnPayload.errors ?
                     (returnPayload.errors[returnPayload.errors.length] =
                         validateResponse.value) :
