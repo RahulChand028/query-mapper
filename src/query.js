@@ -338,13 +338,9 @@ validator.alphanumeric = function (schema, payload, key) {
 
 Query.validate = function (schema, payload) {
     if (typeof schema != "object") {
-        return {
-            errors: "Root schema expected to be an Object"
-        };
+        return { errors: "Root schema expected to be an Object" };
     } else if (typeof payload != "object") {
-        return {
-            errors: "payload expected to be an Object"
-        };
+        return { errors: "payload expected to be an Object"  };
     } else if (payload != null) {
         let schemaKeys = Object.keys(schema);
         let returnPayload = {};
